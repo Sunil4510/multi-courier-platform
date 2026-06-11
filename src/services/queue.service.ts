@@ -49,12 +49,37 @@ export class QueueService {
     while (true) {
       // 1. Transactionally fetch and "lock" a batch of PENDING items
       const itemsToProcess = await prisma.$transaction(async (tx) => {
-        // Query next pending items
-        const pendingItems = await tx.bulkBatchItem.findMany({
-          where: { status: 'PENDING' },
-          take: env.CONCURRENCY_LIMIT,
-          orderBy: { createdAt: 'asc' }
+        // Find all orderIds currently being processed
+        const activeProcessingItems = await tx.bulkBatchItem.findMany({
+          where: { status: 'PROCESSING' },
+          select: { orderId: true }
         });
+        const activeOrderIds = activeProcessingItems.map(item => item.orderId);
+
+        // Fetch candidate pending items whose orderIds are not active
+        const pendingCandidates = await tx.bulkBatchItem.findMany({
+          where: {
+            status: 'PENDING',
+            ...(activeOrderIds.length > 0 ? { orderId: { notIn: activeOrderIds } } : {})
+          },
+          orderBy: { createdAt: 'asc' },
+          take: 200 // Fetch a reasonable chunk to deduplicate in memory
+        });
+
+        if (pendingCandidates.length === 0) return [];
+
+        // Deduplicate candidates in-memory to ensure we don't process same orderId in parallel
+        const pendingItems: typeof pendingCandidates = [];
+        const seen = new Set<string>();
+        for (const item of pendingCandidates) {
+          if (!seen.has(item.orderId)) {
+            seen.add(item.orderId);
+            pendingItems.push(item);
+            if (pendingItems.length >= env.CONCURRENCY_LIMIT) {
+              break;
+            }
+          }
+        }
 
         if (pendingItems.length === 0) return [];
 
