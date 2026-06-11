@@ -115,12 +115,12 @@ export class QueueService {
           let errorReason: string | null = null;
 
           try {
+            const taskReqId = require('crypto').randomUUID();
             // Call single order creation logic (which handles internal retry policies & idempotency)
-            await orderService.createOrder(item.payload as any, item.courierPartner);
+            await orderService.createOrder(item.payload as any, item.courierPartner, taskReqId);
             success = true;
           } catch (err: any) {
             errorReason = err.message || 'Manifest creation failed';
-            console.error(`Queue worker item failure [Order ID: ${item.orderId}]:`, errorReason);
           }
 
           // 3. Update Item and Batch stats

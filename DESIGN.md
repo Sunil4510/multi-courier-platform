@@ -119,10 +119,14 @@ erDiagram
 
 ## 5. Architectural Trade-offs & Decisions
 
-### 5.1 DB-Backed Queue vs. Dedicated Message Broker (Redis/RabbitMQ/Kafka)
-* **Redis + BullMQ / RabbitMQ:** Ideal for extremely high-throughput production microservices.
-* **DB-Backed Queue (Chosen):** We chose a database-backed queue table using PostgreSQL.
-  * *Why:* It guarantees **atomic transactional consistency** (either the API successfully schedules all 100 orders or none are scheduled; RabbitMQ/Redis do not share ACID transaction boundaries with Postgres). It also simplifies infrastructure, removing the requirement to run external Redis or RabbitMQ servers for deployment/testing.
+### 5.1 DB-Backed Queue vs. Dedicated Message Broker (Kafka/RabbitMQ/Redis)
+* **Kafka / RabbitMQ / Redis (BullMQ):** 
+  * *Production Ideal:* In a production environment with high scale, we would ideally use a dedicated message broker (like Kafka or RabbitMQ) to decouple background workers and scale consumer instances independently.
+* **Database-Backed Queue (Chosen for this Platform):**
+  * *Why:*
+    1. **ACID Transactional Consistency:** External brokers do not share transaction boundaries with SQL databases. If we push tasks to Kafka but the SQL write fails, the states drift. Using PostgreSQL itself as the queue allows us to ingest the bulk orders and enqueue the worker items in a **single database transaction**, guaranteeing exactly-once scheduling consistency.
+    2. **Frictionless Local Execution:** A message broker requires setting up and running external services (e.g., Zookeeper, Kafka, or Redis). Using a DB-backed queue keeps project dependencies minimal, enabling reviewers to run the platform locally with just standard Node and PostgreSQL.
+    3. **Transactional Locks:** Using table locks and status polling allows safe chunking and deduplication, preventing parallel execution race conditions on identical order IDs.
 
 ### 5.2 SQL (PostgreSQL) vs. Document DB (MongoDB)
 * **MongoDB:** Naturally suited for storing unstructured/dynamic raw payload audits.

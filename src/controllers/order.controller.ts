@@ -47,7 +47,7 @@ export class OrderController {
       const normalizedPayload = this.mapToNormalizedPayload(req.body);
       const courierPartner = req.body.courier_partner;
 
-      const order = await orderService.createOrder(normalizedPayload, courierPartner);
+      const order = await orderService.createOrder(normalizedPayload, courierPartner, (req as any).id);
       
       res.status(201).json({
         success: true,

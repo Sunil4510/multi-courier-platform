@@ -9,6 +9,14 @@ const app = express();
 
 app.use(express.json());
 
+// Request ID Middleware
+app.use((req, res, next) => {
+  const reqId = (req.headers['x-request-id'] as string) || require('crypto').randomUUID();
+  req.headers['x-request-id'] = reqId;
+  (req as any).id = reqId;
+  next();
+});
+
 // Main Router Mount
 app.use('/api/v1/orders', orderRouter);
 

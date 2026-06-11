@@ -39,7 +39,7 @@ export class OrderService {
     throw lastError;
   }
 
-  public async createOrder(payload: NormalizedOrderPayload, courierPartner: string) {
+  public async createOrder(payload: NormalizedOrderPayload, courierPartner: string, requestId?: string) {
     const partner = courierPartner.toLowerCase();
     
     // 1. Idempotency Check
@@ -66,7 +66,14 @@ export class OrderService {
       // Execute the courier API call with retry policy
       orderResult = await this.retryWithBackoff(() => adapter.createShipment(payload));
     } catch (err: any) {
-      console.error(`Failed to create order ${payload.orderId} on courier ${partner}:`, err.message);
+      console.error(
+        `[Failure] Order creation failed. ` +
+        `OrderID: ${payload.orderId}, ` +
+        `Courier: ${partner}, ` +
+        `RequestID: ${requestId || 'N/A'}, ` +
+        `ErrorType: ${err instanceof AppError ? err.code : 'UNKNOWN_ERROR'}, ` +
+        `Stack: ${err.stack || 'No stack trace'}`
+      );
       errorDetail = err instanceof AppError ? { 
         message: err.message, 
         code: err.code, 
