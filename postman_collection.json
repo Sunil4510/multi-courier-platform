@@ -1,0 +1,211 @@
+{
+  "info": {
+    "_postman_id": "8b9e67a0-0081-432d-986c-851f8a846c24",
+    "name": "Multi-Courier Platform API",
+    "description": "Postman Collection to test Multi-Courier Integration Platform endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Single Order (UrbaneBolt)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"courier_partner\": \"urbanebolt\",\n  \"order_id\": \"UB_ORD_{{$timestamp}}\",\n  \"declared_value\": 1200,\n  \"collectable_value\": 1200,\n  \"item_description\": \"Textbooks Collection\",\n  \"item_quantity\": 1,\n  \"pay_mode\": \"COD\",\n  \"weight\": 1.5,\n  \"length\": 15,\n  \"breadth\": 12,\n  \"height\": 10,\n  \"pieces\": 1,\n  \"shipper\": {\n    \"name\": \"Rohit Warehouse\",\n    \"mobile\": \"9425018023\",\n    \"email\": \"bhopal@mbdgroup.com\",\n    \"address\": \"Plot No.137 Sector-I Govindpura\",\n    \"city\": \"Govindpura\",\n    \"state\": \"BHOPAL\",\n    \"pincode\": \"122017\",\n    \"country\": \"INDIA\"\n  },\n  \"consignee\": {\n    \"name\": \"Satyam Convent School\",\n    \"mobile\": \"8320226438\",\n    \"email\": \"test@school.com\",\n    \"address\": \"Plot No. 26-27, Om Nagar Society\",\n    \"city\": \"Surat\",\n    \"state\": \"GUJRAT\",\n    \"pincode\": \"122001\",\n    \"country\": \"INDIA\"\n  },\n  \"invoice_number\": \"INV-UB-{{$timestamp}}\",\n  \"invoice_date\": \"2026-06-11\",\n  \"invoice_value\": 1200\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Single Order (Mock Courier)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"courier_partner\": \"mock\",\n  \"order_id\": \"MOCK_ORD_{{$timestamp}}\",\n  \"declared_value\": 800,\n  \"collectable_value\": 0,\n  \"item_description\": \"Smart Watch\",\n  \"item_quantity\": 1,\n  \"pay_mode\": \"PPD\",\n  \"weight\": 0.3,\n  \"length\": 10,\n  \"breadth\": 10,\n  \"height\": 5,\n  \"pieces\": 1,\n  \"shipper\": {\n    \"name\": \"Alpha Warehouse\",\n    \"mobile\": \"9876543210\",\n    \"email\": \"shipper@alpha.com\",\n    \"address\": \"Industrial Area Phase 1\",\n    \"city\": \"Gurgaon\",\n    \"state\": \"Haryana\",\n    \"pincode\": \"122001\",\n    \"country\": \"INDIA\"\n  },\n  \"consignee\": {\n    \"name\": \"John Doe\",\n    \"mobile\": \"9999988888\",\n    \"email\": \"john.doe@gmail.com\",\n    \"address\": \"Flat 402, Green Meadows Apartment\",\n    \"city\": \"Surat\",\n    \"state\": \"Gujarat\",\n    \"pincode\": \"395009\",\n    \"country\": \"INDIA\"\n  },\n  \"invoice_number\": \"INV-MC-{{$timestamp}}\",\n  \"invoice_date\": \"2026-06-11\",\n  \"invoice_value\": 800\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Single Order (Validation Error Test)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"courier_partner\": \"mock\",\n  \"order_id\": \"MOCK_ERR_1001\"\n  // missing shipper, consignee, pay_mode, invoice, etc.\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Bulk Ingest Orders (Mixed)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"courier_partner\": \"mock\",\n    \"order_id\": \"BULK_ORD_SUCCESS_1_{{$timestamp}}\",\n    \"declared_value\": 500,\n    \"item_description\": \"Item A\"\n  },\n  {\n    \"courier_partner\": \"mock\",\n    \"order_id\": \"BULK_ORD_SUCCESS_2_{{$timestamp}}\",\n    \"declared_value\": 1000,\n    \"item_description\": \"Item B\"\n  },\n  {\n    \"courier_partner\": \"mock\",\n    \"order_id\": \"BULK_ORD_FAIL_3_{{$timestamp}}\", // triggers pincode check failure in MockCourier\n    \"declared_value\": 300,\n    \"item_description\": \"Item C\"\n  }\n]"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders/bulk",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders",
+            "bulk"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Check Bulk Batch Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders/bulk/:batch_id",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders",
+            "bulk",
+            ":batch_id"
+          ],
+          "variable": [
+            {
+              "key": "batch_id",
+              "value": "replace-with-actual-batch-id"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Track Order",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders/:order_id/track",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders",
+            ":order_id",
+            "track"
+          ],
+          "variable": [
+            {
+              "key": "order_id",
+              "value": "replace-with-actual-order-id"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Cancel Order",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/orders/:order_id/cancel",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "orders",
+            ":order_id",
+            "cancel"
+          ],
+          "variable": [
+            {
+              "key": "order_id",
+              "value": "replace-with-actual-order-id"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

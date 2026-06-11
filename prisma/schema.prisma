@@ -1,0 +1,63 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Order {
+  id              String            @id @default(uuid())
+  orderId         String            @unique
+  courierPartner  String
+  courierOrderId  String?
+  awb             String?           @unique
+  status          String            // CREATED, PICKED_UP, IN_TRANSIT, DELIVERED, CANCELLED, FAILED
+  requestPayload  Json
+  responsePayload Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  trackingHistory TrackingHistory[]
+
+  @@index([awb])
+}
+
+model TrackingHistory {
+  id         String   @id @default(uuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status     String
+  rawPayload Json
+  timestamp  DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model BulkBatch {
+  id           String          @id @default(uuid())
+  status       String          // PENDING, PROCESSING, COMPLETED
+  totalCount   Int             @default(0)
+  successCount Int             @default(0)
+  failedCount  Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  items        BulkBatchItem[]
+}
+
+model BulkBatchItem {
+  id             String    @id @default(uuid())
+  batchId        String
+  batch          BulkBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  orderId        String
+  courierPartner String
+  status         String    // PENDING, PROCESSING, SUCCESS, FAILED
+  payload        Json
+  errorReason    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([batchId])
+  @@index([status])
+}
